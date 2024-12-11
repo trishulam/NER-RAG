@@ -150,17 +150,29 @@ Given the constraints of running on an M1 Mac with 8GB RAM, the selected models 
    cd S2T
    ```
 
-2. **Install Docker** (if not already installed):
+2. **Create `.env` File**:
+
+   Create a `.env` file in the root directory with the following variables:
+
+   ```env
+   OPENAI_API_KEY=<your_openai_api_key>
+   PINECONE_API_KEY=<your_pinecone_api_key>
+   PINECONE_INDEX_NAME=<your_pinecone_index_name>
+   ```
+
+   These variables are critical for the application to run properly.
+
+3. **Install Docker** (if not already installed):
 
    - [Docker Installation Guide](https://docs.docker.com/get-docker/)
 
-3. **Run the Application**:
+4. **Run the Application**:
 
    ```bash
    docker-compose up --build
    ```
 
-4. **Verify Services**:
+5. **Verify Services**:
 
    - Main Service: `http://localhost:8080`
    - Entities Service: `http://localhost:5001`
@@ -212,4 +224,3 @@ Given the constraints of running on an M1 Mac with 8GB RAM, the selected models 
 - `GET /relations/get_by_type`: Retrieve relationships filtered by type. Requires:
   - `type`: Type of the relationship to filter.
 
----
