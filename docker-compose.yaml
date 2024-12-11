@@ -1,0 +1,41 @@
+version: '3.9'
+services:
+  entities-service:
+    container_name: entities-service
+    build:
+      context: ./entities_service
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./entities_service/instance:/app/instance
+    networks:
+      - app-network
+
+  main-service:
+    container_name: main-service
+    build:
+      context: ./main_service
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./main_service/instance:/app/instance
+    networks:
+      - app-network
+    depends_on:
+      - entities-service
+      - relations-service
+  
+  relations-service:
+    container_name: relations-service
+    build:
+      context: ./relations_service
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./relations_service/instance:/app/instance
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
