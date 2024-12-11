@@ -1,127 +1,215 @@
-# Microservices-Based AI-Powered Entity Extraction and Relationship Management System
+# Backend for Text Analysis and Enrichment Pipeline
 
-## Project Overview
-This project implements a microservices architecture to extract entities and relationships from input text using an AI-powered model (LLM) and a vector database (Pinecone) for RAG (Retrieval Augmented Generation). The system is designed to parse entities like persons, vehicles, locations, and events, and map relationships between them.
+## Overview
 
-### Key Features:
-- **Entities Service**: Extracts entities like persons, vehicles, locations, etc., from input text.
-- **Relations Service**: Maps relationships between the extracted entities.
-- **Main Service**: Acts as the central API gateway, orchestrating requests to other services and handling RAG queries.
+This backend system implements a microservices-based architecture for text analysis and enrichment using a locally hosted language model (LLM). The application extracts entities, identifies relationships, and structures the data for downstream processing. It demonstrates efficient use of AI capabilities, scalable backend design, and structured data handling.
+
+This backend is built specifically for an interview test and showcases:
+
+- **Entity Extraction**: Identifying named entities (e.g., persons, locations, vehicles).
+- **Relationship Mapping**: Establishing connections between entities.
+- **RAG (Retrieval-Augmented Generation)**: Answering queries with enriched contextual data.
+
+The backend interacts with a separate Next.js frontend application to visualize outputs like relationships on a canvas.
+
+---
+
+## Features
+
+- **Microservices Architecture**:
+
+  - `main_service`: Gateway for handling API requests, coordinating entity and relationship operations, and performing AI tasks.
+  - `entities_service`: Manages CRUD operations for extracted entities.
+  - `relations_service`: Manages CRUD operations for relationships between entities.
+
+- **AI Integration**:
+
+  - Local LLMs like Phi3 for Named Entity Recognition (NER) and Llama 3.2 for RAG.
+  - Pinecone for vector-based document retrieval.
+  - **Structured Outputs with Pydantic and Ollama**:
+    - Pydantic schemas ensure structured outputs, providing type validation and clarity in API responses.
+    - **Ollama Structured Outputs**:
+      - Uses `response_format` in the `client.beta.chat.completion.parse` method from the OpenAI client library.
+      - Outputs adhere to predefined JSON schemas for reliable downstream processing, as demonstrated in the [Ollama Structured Outputs blog](https://ollama.com/blog/structured-outputs).
+
+- **Scalable Design**:
+
+  - Modular services with isolated responsibilities.
+  - Dockerized setup for easy deployment.
+
+- **Optimized Data Handling**:
+
+  - SQLite for persistence.
+  - SQLAlchemy ORM for efficient database operations.
+
+---
+
+## Model Selection Rationale
+
+Given the constraints of running on an M1 Mac with 8GB RAM, the selected models are Phi3 for Named Entity Recognition (NER) and Llama 3.2 for Retrieval-Augmented Generation (RAG). These models are lightweight and can run locally without requiring extensive computational resources. However, their performance is below average compared to larger models like GPT-4, and this trade-off ensures feasibility within the hardware limitations.
+
+---
+
+## Architecture
+
+### Microservices
+
+1. **Main Service**:
+
+   - Acts as the gateway for the backend.
+   - Coordinates between `entities_service` and `relations_service`.
+   - Handles AI tasks like entity extraction and RAG.
+
+2. **Entities Service**:
+
+   - Stores and retrieves extracted entities.
+   - CRUD operations for entities like Persons, Locations, Vehicles.
+
+3. **Relations Service**:
+
+   - Manages relationships between entities.
+   - Supports queries by relationship type or associated input text.
 
 ---
 
 ## Directory Structure
-```plaintext
+
+```
 .
-├── README.md               # This README file
-├── docker-compose.yaml     # Docker Compose file for running all services
-├── entities_service        # Handles entity extraction
+├── README.md
+├── docker-compose.yaml
+├── entities_service
+│   ├── Dockerfile
 │   ├── application
-│   │   ├── services        # Entity-specific logic (persons, vehicles, etc.)
-│   │   ├── models.py       # Database models for entities
-│   │   ├── api.py          # API routes for entity service
-│   │   ├── database.py     # Database configuration
-│   │   ├── config.py       # Service configuration
-│   └── main.py             # Entry point for the entities service
-├── main_service            # Orchestrates the system and handles RAG
+│   │   ├── __init__.py
+│   │   ├── api.py
+│   │   ├── config.py
+│   │   ├── database.py
+│   │   ├── models.py
+│   │   └── services
+│   │       ├── emails.py
+│   │       ├── entities.py
+│   │       ├── events.py
+│   │       ├── locations.py
+│   │       ├── persons.py
+│   │       ├── phone_numbers.py
+│   │       └── vehicles.py
+│   ├── main.py
+│   └── requirements.txt
+├── main_service
+│   ├── Dockerfile
+│   ├── README.md
 │   ├── application
-│   │   ├── prompts         # LLM prompt templates
-│   │   ├── schema          # Pydantic schemas for validation
-│   │   ├── services        # Core logic for RAG, entities, etc.
-│   │   ├── utils           # Utilities (LLM client, Pinecone client)
-│   │   ├── api.py          # Main API routes
-│   │   ├── database.py     # Database configuration
-│   ├── main.py             # Entry point for the main service
-├── relations_service       # Handles relationships between entities
-│   ├── application
-│   │   ├── services        # Logic for relationship mapping
-│   │   ├── models.py       # Database models for relationships
-│   │   ├── api.py          # API routes for relations service
-│   └── main.py             # Entry point for the relations service
+│   │   ├── __init__.py
+│   │   ├── api.py
+│   │   ├── config.py
+│   │   ├── database.py
+│   │   ├── models.py
+│   │   ├── prompts
+│   │   │   ├── entities.py
+│   │   │   ├── rag.py
+│   │   │   └── relations.py
+│   │   ├── schema
+│   │   │   ├── entities.py
+│   │   │   ├── rag.py
+│   │   │   └── relations.py
+│   │   ├── services
+│   │   │   ├── entities.py
+│   │   │   ├── input.py
+│   │   │   ├── rag.py
+│   │   │   ├── relations.py
+│   │   │   └── services_check.py
+│   │   └── utils
+│   │       ├── llm_client.py
+│   │       └── pinecone.py
+│   ├── main.py
+│   └── requirements.txt
+└── relations_service
+    ├── Dockerfile
+    ├── README.md
+    ├── application
+    │   ├── __init__.py
+    │   ├── api.py
+    │   ├── config.py
+    │   ├── database.py
+    │   ├── models.py
+    │   └── services
+    │       └── relations.py
+    ├── main.py
+    └── requirements.txt
 ```
 
 ---
 
-## Setup Instructions
+## Installation and Setup
 
-### 1. Clone the Repository
-```bash
-git clone <repository-url>
-cd <repository-folder>
-```
+1. **Clone the Repository**:
 
-### 2. Install Docker and Docker Compose
-Ensure Docker and Docker Compose are installed on your machine:
-- [Docker Installation Guide](https://docs.docker.com/get-docker/)
-- [Docker Compose Installation Guide](https://docs.docker.com/compose/install/)
+   ```bash
+   git clone https://github.com/trishulam/S2T.git
+   cd S2T
+   ```
 
-### 3. Set Up Environment Variables
-Create a `.env` file in the root directory with the following:
-```env
-OPENAI_API_KEY=<your_openai_api_key>
-PINECONE_API_KEY=<your_pinecone_api_key>
-PINECONE_ENVIRONMENT=<your_pinecone_environment>
-PINECONE_INDEX=<your_pinecone_index_name>
-```
+2. **Install Docker** (if not already installed):
 
-### 4. Build and Run the Docker Containers
-Use Docker Compose to build and run all services:
-```bash
-docker-compose up --build
-```
+   - [Docker Installation Guide](https://docs.docker.com/get-docker/)
 
-### 5. Access the Services
-- **Main Service**: http://localhost:8080
-- **Entities Service**: http://localhost:5001
-- **Relations Service**: http://localhost:5002
+3. **Run the Application**:
+
+   ```bash
+   docker-compose up --build
+   ```
+
+4. **Verify Services**:
+
+   - Main Service: `http://localhost:8080`
+   - Entities Service: `http://localhost:5001`
+   - Relations Service: `http://localhost:5002`
 
 ---
 
 ## API Endpoints
 
-### **Main Service**
-| Endpoint         | Method | Description                           |
-|------------------|--------|---------------------------------------|
-| `/`              | GET    | Health check for the main service     |
-| `/rag`           | POST   | Handle RAG queries                   |
-| `/get_entities`  | POST   | Extract entities from input text     |
-| `/check_services`| GET    | Check connectivity with other services|
+### Main Service
 
-### **Entities Service**
-| Endpoint       | Method | Description                        |
-|----------------|--------|------------------------------------|
-| `/entities`    | POST   | Extract entities from input text  |
-| `/entities/id` | GET    | Retrieve entities by input text ID|
+- `GET /`: Health check for the main service.
+- `GET /check_services`: Verifies connectivity with `entities_service` and `relations_service`.
+- `POST /parse_entities`: Extract entities using the LLM. Requires:
+  - `user_message`: The text to analyze.
+  - `provider`: The LLM provider (`llama` or `openai`).
+- `GET /get_entities`: Retrieve all entities from the database.
+- `GET /get_entities/<input_text_id>`: Retrieve entities for a specific input text.
+- `POST /parse_relations`: Extract relationships from a given input text ID. Requires:
+  - `input_text_id`: ID of the input text.
+  - `provider`: The LLM provider (`llama` or `openai`).
+- `GET /get_relations`: Retrieve all relationships from the database.
+- `GET /get_relations/<input_text_id>`: Retrieve relationships for a specific input text.
+- `GET /get_relations_by_type`: Retrieve relationships filtered by type. Requires:
+  - `type`: Type of the relationship.
+- `GET /get_all_inputs`: Retrieve all input texts from the database.
+- `POST /rag`: Perform a RAG query. Requires:
+  - `query`: The question to ask.
+  - `provider`: The LLM provider (`llama` or `openai`).
 
-### **Relations Service**
-| Endpoint        | Method | Description                       |
-|-----------------|--------|-----------------------------------|
-| `/relations`    | POST   | Map relationships between entities|
-| `/relations/id` | GET    | Retrieve relationships by input ID|
+### Entities Service
 
----
+- `GET /entities/hello`: Health check for the `entities_service`.
+- `POST /entities/save`: Save extracted entities to the database. Requires:
+  - `entities`: List of entities.
+  - `input_text_id`: Identifier for the input text.
+- `GET /entities/get`: Retrieve all entities.
+- `GET /entities/get/<input_text_id>`: Retrieve entities for a specific input text.
 
-## Technologies Used
-- **Programming Language**: Python 3.12
-- **Web Framework**: Flask
-- **Database**: SQLite (local), Pinecone (vector database)
-- **AI Models**: Llama 3.2, OpenAI's `text-embedding-3-small`
-- **Containerization**: Docker, Docker Compose
+### Relations Service
 
----
-
-## Future Enhancements
-- Add support for anomaly detection service.
-- Improve RAG responses with more contextual data.
-- Introduce a front-end visualization for entities and relationships.
-
----
-
-## Contribution Guidelines
-1. Fork the repository.
-2. Create a new branch: `git checkout -b feature-name`.
-3. Commit changes: `git commit -m 'Add feature'`.
-4. Push to the branch: `git push origin feature-name`.
-5. Open a pull request.
+- `GET /relations/hello`: Health check for the `relations_service`.
+- `POST /relations/save`: Save extracted relationships to the database. Requires:
+  - `relations`: List of relationships.
+  - `input_text_id`: Identifier for the input text.
+- `GET /relations/get`: Retrieve all relationships.
+- `GET /relations/get_by_input_text_id`: Retrieve relationships for a specific input text. Requires:
+  - `input_text_id`: Identifier for the input text.
+- `GET /relations/get_by_type`: Retrieve relationships filtered by type. Requires:
+  - `type`: Type of the relationship to filter.
 
 ---
