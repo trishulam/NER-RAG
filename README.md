@@ -146,8 +146,8 @@ Given the constraints of running on an M1 Mac with 8GB RAM, the selected models 
 1. **Clone the Repository**:
 
    ```bash
-   git clone https://github.com/trishulam/S2T.git
-   cd S2T
+   git clone https://github.com/trishulam/NER-RAG.git
+   cd NER-RAG
    ```
 
 2. **Create `.env` File**:
